@@ -9,7 +9,7 @@ from src.model.crusty_swap.instance import CrustySwap
 from src.model.disperse_from_one.instance import DisperseFromOneWallet
 from src.model.balance_checker.instance import BalanceChecker
 from src.model.disperse_one_one.instance import DisperseOneOne
-from src.crystal_swap import CrystalSwap  # Added import
+from src.model.crystal_swap.instance import CrystalSwap  # Added import
 import src.utils
 from src.utils.output import show_dev_info, show_logo
 import src.model
@@ -135,9 +135,9 @@ async def start():
         await crusty_swap.refuel_from_one_to_all(private_keys_to_distribute)
         return
 
-    # Crystal Swap integration
     if "crystal_swap" in config.FLOW.TASKS:
-        crystal_swap = CrystalSwap(1, proxies[0], private_keys[0], config)
+        session = AsyncClient(proxy=f"http://{proxies[0]}")
+        crystal_swap = CrystalSwap(1, proxies[0], private_keys[0], config, session)
         await crystal_swap.execute()
         return
 
