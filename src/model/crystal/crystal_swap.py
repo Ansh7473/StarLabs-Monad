@@ -31,24 +31,20 @@ class CrystalSwap:
         self.private_key = private_key
         self.config = config
         self.account = Account.from_key(private_key)
-        # Set up AsyncWeb3 with proxy support
         self.web3 = AsyncWeb3(
             AsyncWeb3.AsyncHTTPProvider(
                 RPC_URL,
                 request_kwargs={"proxy": (f"http://{proxy}" if proxy else None)},
             )
         )
-        # Contracts
         self.router = self.web3.eth.contract(address=ROUTER_CONTRACT, abi=ABI["router"])
         self.usdc = self.web3.eth.contract(address=USDC_CONTRACT, abi=ABI["token"])
-        # Define tokens specific to Crystal Swap
         self.AVAILABLE_TOKENS = {
             "MON": ALL_TOKENS["MON"],
             "USDC": ALL_TOKENS["USDC"],
         }
 
     async def get_gas_params(self) -> Dict[str, int]:
-        """Get current gas parameters from the network."""
         latest_block = await self.web3.eth.get_block("latest")
         base_fee = latest_block["baseFeePerGas"]
         max_priority_fee = await self.web3.eth.max_priority_fee
@@ -59,16 +55,14 @@ class CrystalSwap:
         }
 
     async def estimate_gas(self, transaction: dict) -> int:
-        """Estimate gas for transaction with a buffer."""
         try:
             estimated = await self.web3.eth.estimate_gas(transaction)
-            return int(estimated * 1.2)  # 20% buffer
+            return int(estimated * 1.2)
         except Exception as e:
             logger.warning(f"[{self.account_index}] Error estimating gas: {e}")
-            return 200000  # Fallback gas limit
+            return 200000
 
     async def get_token_balance(self, token: Dict) -> float:
-        """Get token balance for the account."""
         try:
             if token["native"]:
                 balance_wei = await self.web3.eth.get_balance(self.account.address)
@@ -81,7 +75,6 @@ class CrystalSwap:
             return 0.0
 
     async def approve_usdc(self, amount_wei: int) -> bool:
-        """Approve the router to spend USDC."""
         try:
             allowance = await self.usdc.functions.allowance(
                 self.account.address, ROUTER_CONTRACT
@@ -94,7 +87,7 @@ class CrystalSwap:
                 "from": self.account.address,
                 "to": USDC_CONTRACT,
                 "data": self.usdc.functions.approve(ROUTER_CONTRACT, 2**256 - 1)._encode_transaction_data(),
-                "chainId": 10143,  # From your Madness module
+                "chainId": 10143,
                 "type": 2,
                 "nonce": await self.web3.eth.get_transaction_count(self.account.address),
                 **await self.get_gas_params(),
@@ -113,10 +106,9 @@ class CrystalSwap:
             return False
 
     async def swap_mon_to_usdc(self, amount: float) -> Dict:
-        """Swap MON to USDC."""
         amount_wei = self.web3.to_wei(amount, "ether")
-        path = [WMON_CONTRACT, USDC_CONTRACT]  # MON -> WMON -> USDC
-        deadline = int(time.time()) + 600  # 10-minute deadline
+        path = [WMON_CONTRACT, USDC_CONTRACT]
+        deadline = int(time.time()) + 600
 
         for attempt in range(self.config.SETTINGS.ATTEMPTS):
             try:
@@ -144,7 +136,6 @@ class CrystalSwap:
                         "to_token": "USDC",
                         "amount_in": amount,
                     }
-                logger.error(f"[{self.account_index}] Swap MON -> USDC failed")
                 return {"success": False, "error": "Transaction reverted"}
             except Exception as e:
                 logger.error(f"[{self.account_index}] Swap attempt {attempt + 1} failed: {e}")
@@ -153,9 +144,8 @@ class CrystalSwap:
         return {"success": False, "error": "All attempts failed"}
 
     async def swap_usdc_to_mon(self, amount: float) -> Dict:
-        """Swap USDC to MON."""
-        amount_wei = int(amount * 10**6)  # USDC has 6 decimals
-        path = [USDC_CONTRACT, WMON_CONTRACT]  # USDC -> WMON -> MON
+        amount_wei = int(amount * 10**6)
+        path = [USDC_CONTRACT, WMON_CONTRACT]
         deadline = int(time.time()) + 600
 
         for attempt in range(self.config.SETTINGS.ATTEMPTS):
@@ -185,7 +175,6 @@ class CrystalSwap:
                         "to_token": "MON",
                         "amount_in": amount,
                     }
-                logger.error(f"[{self.account_index}] Swap USDC -> MON failed")
                 return {"success": False, "error": "Transaction reverted"}
             except Exception as e:
                 logger.error(f"[{self.account_index}] Swap attempt {attempt + 1} failed: {e}")
@@ -194,7 +183,6 @@ class CrystalSwap:
         return {"success": False, "error": "All attempts failed"}
 
     async def execute(self):
-        """Execute random swaps between MON and USDC."""
         if not hasattr(self.config, "CRYSTAL_SWAP") or not self.config.CRYSTAL_SWAP.ENABLED:
             logger.info(f"[{self.account_index}] Crystal Swap is disabled")
             return
