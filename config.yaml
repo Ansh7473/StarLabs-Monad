@@ -217,5 +217,7 @@ MADNESS:
     SWAP_ALL_TO_MONAD: false
 
 
+CRYSTAL_SWAP:
+    ENABLED: true
 
 
