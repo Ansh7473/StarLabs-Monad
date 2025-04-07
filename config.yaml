@@ -34,13 +34,20 @@ SETTINGS:
     TELEGRAM_USERS_IDS: []
 
 # --------------------------- #
-# FLOW SECTION
+    # --------------------------- #
+# FLOW SECTION (updated)
 # --------------------------- #
 FLOW:
-    # number of swaps. bean ambient monad etc
-    NUMBER_OF_SWAPS: [1, 1]
-    # percent of balance to swap
-    PERCENT_OF_BALANCE_TO_SWAP: [5, 15]
+    TASKS:
+        - "crystal_swap"  # Add this to trigger CrystalSwap
+    NUMBER_OF_SWAPS: [1, 4]
+    PERCENT_OF_BALANCE_TO_SWAP: [2, 4]
+
+# --------------------------- #
+# CRYSTAL SWAP SECTION
+# --------------------------- #
+CRYSTAL_SWAP:
+    ENABLED: true
 
 # --------------------------- #
 # OTHER SECTIONS
@@ -208,3 +215,7 @@ FLAPSH:
 
 MADNESS:
     SWAP_ALL_TO_MONAD: false
+
+
+
+
