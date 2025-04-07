@@ -136,6 +136,7 @@ async def start():
         return
 
     if "crystal_swap" in config.FLOW.TASKS:
+        from primp import AsyncClient  # Import here to avoid issues if primp is missing
         session = AsyncClient(proxy=f"http://{proxies[0]}")
         crystal_swap = CrystalSwap(1, proxies[0], private_keys[0], config, session)
         await crystal_swap.execute()
@@ -159,10 +160,10 @@ async def start():
         accounts_to_process = private_keys[start_index - 1 : end_index]
 
     discord_tokens = [""] * len(accounts_to_process)
-    emails = [""] * len(accounts_to_process) 
+    emails = [""] * len(accounts_to_process)
 
     threads = config.SETTINGS.THREADS
-    cycled_proxies = [proxies[i % len(proxies)] for i in range(len(accounts_to_process)]
+    cycled_proxies = [proxies[i % len(proxies)] for i in range(len(accounts_to_process))]
 
     shuffled_indices = list(range(len(accounts_to_process)))
     random.shuffle(shuffled_indices)
