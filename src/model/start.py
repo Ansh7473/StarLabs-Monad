@@ -407,7 +407,6 @@ class Start:
                 self.config,
                 self.session,
             )
-            await narwhal_finance.faucet()
             await narwhal_finance.gamble()
 
         elif task == "monsternad_whitelist":

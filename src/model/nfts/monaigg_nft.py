@@ -9,30 +9,9 @@ from src.utils.constants import EXPLORER_URL, RPC_URL
 from src.utils.config import Config
 from loguru import logger
 
-# Обновляем ABI для ERC1155
-# Обновляем ABI для MonAI Yakuza NFT
-MONAI_YAKUZA_ABI = [
-    {
-        "type": "function",
-        "name": "mint",
-        "inputs": [
-            {"name": "quantity", "type": "uint256", "internalType": "uint256"},
-            {"name": "refer", "type": "address", "internalType": "address"},
-        ],
-        "outputs": [],
-        "stateMutability": "payable",
-    },
-    {
-        "type": "function",
-        "name": "balanceOf",
-        "inputs": [{"name": "owner", "type": "address", "internalType": "address"}],
-        "outputs": [{"name": "", "type": "uint256", "internalType": "uint256"}],
-        "stateMutability": "view",
-    },
-]
 
-# Обновляем ABI для MonAI Qingyi NFT
-MONAI_QINGYI_ABI = [
+# Обновляем ABI для MonAI DeFAI NFT
+MONAI_DeFAI = [
     {
         "type": "function",
         "name": "mint",
@@ -78,11 +57,11 @@ class Monai:
 
         # Изменяем адрес контракта на новый
         self.nft_contract_address = Web3.to_checksum_address(
-            "0xc1711Ff6B4F81AE45c36f370a3914Da53b98bcDc"
+            "0xa34887f54964bB43c897C73CD7316D3e1D1872fe"
         )
         # Используем MONAI_QINGYI_ABI вместо MONAI_YAKUZA_ABI
         self.nft_contract: Contract = self.web3.eth.contract(
-            address=self.nft_contract_address, abi=MONAI_QINGYI_ABI
+            address=self.nft_contract_address, abi=MONAI_DeFAI
         )
         # Адрес для реферала
         self.refer_address = Web3.to_checksum_address(
@@ -116,11 +95,11 @@ class Monai:
 
                 if balance >= random_nft_amount:
                     logger.success(
-                        f"[{self.account_index}] MonAI Chosen NFT already minted"
+                        f"[{self.account_index}] MonAI DeFAI NFT already minted"
                     )
                     return True
 
-                logger.info(f"[{self.account_index}] Minting Chosen NFT")
+                logger.info(f"[{self.account_index}] Minting DeFAI NFT")
 
                 # Подготавливаем транзакцию минта
                 mint_txn = await self.nft_contract.functions.mint(
@@ -130,7 +109,7 @@ class Monai:
                     {
                         "from": self.account.address,
                         "value": self.web3.to_wei(
-                            1.35, "ether"  # Обновляем сумму для минта на 0.9 MON
+                            0.1, "ether"  # Обновляем сумму для минта на 0.1 MON
                         ),
                         "nonce": await self.web3.eth.get_transaction_count(
                             self.account.address
@@ -155,12 +134,12 @@ class Monai:
 
                 if receipt["status"] == 1:
                     logger.success(
-                        f"[{self.account_index}] Successfully minted Chosen NFT. TX: {EXPLORER_URL}{tx_hash.hex()}"
+                        f"[{self.account_index}] Successfully minted DeFAI NFT. TX: {EXPLORER_URL}{tx_hash.hex()}"
                     )
                     return True
                 else:
                     logger.error(
-                        f"[{self.account_index}] Failed to mint Chosen NFT. TX: {EXPLORER_URL}{tx_hash.hex()}"
+                        f"[{self.account_index}] Failed to mint DeFAI NFT. TX: {EXPLORER_URL}{tx_hash.hex()}"
                     )
                     return False
 
@@ -170,7 +149,7 @@ class Monai:
                     self.config.SETTINGS.RANDOM_PAUSE_BETWEEN_ACTIONS[1],
                 )
                 logger.error(
-                    f"[{self.account_index}] Error in mint on Chosen NFT: {e}. Sleeping for {random_pause} seconds"
+                    f"[{self.account_index}] Error in mint on DeFAI NFT: {e}. Sleeping for {random_pause} seconds"
                 )
                 await asyncio.sleep(random_pause)
 
